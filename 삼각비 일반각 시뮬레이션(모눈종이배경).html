@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>0°와 90°의 삼각비 탐구 - 중학교 수학 3</title>
+    
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Google Font (Noto Sans KR) -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- MathJax for LaTeX Math Rendering -->
+    <script>
+        window.MathJax = {
+            tex: {
+                inlineMath: [['$', '$'], ['\\(', '\\)']]
+            },
+            svg: {
+                fontCache: 'global'
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+    <style>
+        body {
+            font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #f8fafc;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        /* Fallback styling in case Tailwind CDN fails offline */
+        canvas {
+            display: block;
+            touch-action: none;
+        }
+
+        /* Custom range slider styling */
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            height: 24px;
+            width: 24px;
+            border-radius: 50%;
+            background: #2563eb;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+            transition: transform 0.15s ease;
+        }
+        input[type=range]::-webkit-slider-thumb:hover {
+            transform: scale(1.15);
+        }
+        
+        /* Responsive Layout fallback container */
+        .app-container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body class="min-h-screen text-slate-800 flex flex-col justify-between bg-slate-50">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-4 px-6 shadow-md">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/20 p-2.5 rounded-xl text-2xl flex items-center justify-center">
+                    <i class="fa-solid fa-shapes"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight">0°와 90°의 삼각비 탐구실</h1>
+                    <p class="text-xs md:text-sm text-blue-200">중학교 3학년 수학 | 교과서 [그림 1] 연동 시각화 교구</p>
+                </div>
+            </div>
+            <div class="bg-blue-900/50 backdrop-blur px-4 py-2 rounded-lg text-sm border border-blue-400/30 flex items-center space-x-2">
+                <i class="fa-solid fa-lightbulb text-yellow-300"></i>
+                <span>$\angle BOA$가 $0^\circ$로 줄어들 때 변 $\overline{BC}$의 변화를 관찰해보세요!</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Grid -->
+    <main class="max-w-6xl mx-auto w-full p-4 md:p-6 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+        <!-- Left Column: Canvas Viewport & Controls (7 cols) -->
+        <section class="lg:col-span-7 flex flex-col bg-white rounded-2xl shadow-sm border border-slate-200 p-4 md:p-6 justify-between">
+            <div>
+                <!-- Canvas Control Bar Header -->
+                <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-100 flex-wrap gap-2">
+                    <div class="flex items-center space-x-2">
+                        <span class="inline-block w-3 h-3 bg-blue-600 rounded-full"></span>
+                        <h2 class="font-bold text-base md:text-lg text-slate-800">[그림 1] 사분원 모눈종이 삼각비</h2>
+                    </div>
+                    
+                    <!-- Toggle Controls -->
+                    <div class="flex items-center space-x-3 text-xs font-medium text-slate-600 flex-wrap">
+                        <label class="inline-flex items-center cursor-pointer hover:text-blue-600 transition">
+                            <input type="checkbox" id="toggleGrid" class="sr-only peer" checked>
+                            <div class="relative w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
+                            <span class="ms-1.5">모눈종이</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer hover:text-blue-600 transition">
+                            <input type="checkbox" id="toggleTrace" class="sr-only peer" checked>
+                            <div class="relative w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-blue-600"></div>
+                            <span class="ms-1.5">잔상보기</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer hover:text-pink-600 transition">
+                            <input type="checkbox" id="toggleTangent" class="sr-only peer" checked>
+                            <div class="relative w-8 h-4 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-3 after:w-3 after:transition-all peer-checked:bg-pink-600"></div>
+                            <span class="ms-1.5">탄젠트($\tan$)</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Canvas Display Container -->
+                <div class="relative w-full aspect-square max-h-[500px] bg-white rounded-xl border border-slate-200 overflow-hidden flex items-center justify-center shadow-inner">
+                    <canvas id="trigCanvas" class="w-full h-full block"></canvas>
+                    
+                    <!-- Quick Canvas Badge Display -->
+                    <div class="absolute top-3 left-3 bg-white/95 backdrop-blur px-3 py-2 rounded-xl shadow-md border border-slate-200 text-xs md:text-sm space-y-1">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-red-500 inline-block"></span>
+                            <span class="font-semibold text-slate-700">$\sin\theta$ (높이 $\overline{BC}$):</span>
+                            <span id="canvasBCVal" class="font-bold font-mono text-red-600">0.00</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block"></span>
+                            <span class="font-semibold text-slate-700">$\cos\theta$ (밑변 $\overline{OC}$):</span>
+                            <span id="canvasOCVal" class="font-bold font-mono text-emerald-600">1.00</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-pink-500 inline-block"></span>
+                            <span class="font-semibold text-slate-700">$\tan\theta$ (접선 $\overline{AT}$):</span>
+                            <span id="canvasTANVal" class="font-bold font-mono text-pink-600">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Controls Box -->
+            <div class="mt-4 pt-4 border-t border-slate-100 space-y-4">
+                <!-- Angle Display & Big Plus/Minus Buttons -->
+                <div class="flex items-center justify-between bg-slate-100 p-3 rounded-2xl border border-slate-200">
+                    <div class="flex items-center space-x-2 md:space-x-3">
+                        <span class="text-xs md:text-sm font-bold text-slate-600">현재 각도 $\angle BOA$:</span>
+                        <span id="angleValueDisplay" class="text-3xl md:text-4xl font-extrabold text-blue-700 w-24 text-center font-mono">0°</span>
+                    </div>
+
+                    <!-- Step Buttons (+ and -) -->
+                    <div class="flex items-center space-x-2">
+                        <button id="btnMinus" class="w-12 h-12 md:w-14 md:h-14 bg-white hover:bg-slate-200 active:bg-slate-300 text-slate-800 rounded-2xl font-bold text-2xl shadow border border-slate-300 transition flex items-center justify-center select-none active:scale-95" title="각도 줄이기 (-1°)">
+                            <i class="fa-solid fa-minus"></i>
+                        </button>
+                        <button id="btnPlus" class="w-12 h-12 md:w-14 md:h-14 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white rounded-2xl font-bold text-2xl shadow transition flex items-center justify-center select-none active:scale-95" title="각도 늘리기 (+1°)">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Range Slider -->
+                <div class="space-y-1">
+                    <div class="flex justify-between text-xs font-semibold text-slate-500 px-1">
+                        <span>0° (최소)</span>
+                        <span>30°</span>
+                        <span>45°</span>
+                        <span>60°</span>
+                        <span>90° (최대)</span>
+                    </div>
+                    <input type="range" id="angleSlider" min="0" max="90" value="0" step="1" class="w-full h-3 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-blue-600">
+                </div>
+
+                <!-- Quick Preset Buttons & Auto Animation -->
+                <div class="flex flex-wrap items-center justify-between gap-2 pt-1">
+                    <div class="flex items-center space-x-1.5 flex-wrap">
+                        <span class="text-xs font-semibold text-slate-500 mr-1">빠른 이동:</span>
+                        <button class="preset-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 hover:bg-blue-100 hover:text-blue-700 transition" data-angle="0">0°</button>
+                        <button class="preset-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 hover:bg-blue-100 hover:text-blue-700 transition" data-angle="30">30°</button>
+                        <button class="preset-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 hover:bg-blue-100 hover:text-blue-700 transition" data-angle="45">45°</button>
+                        <button class="preset-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 hover:bg-blue-100 hover:text-blue-700 transition" data-angle="60">60°</button>
+                        <button class="preset-btn px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-200 hover:bg-blue-100 hover:text-blue-700 transition" data-angle="90">90°</button>
+                    </div>
+
+                    <!-- Auto Play Animation -->
+                    <div class="flex items-center space-x-2">
+                        <button id="btnAnimateTo0" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-700 border border-red-200 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                            <i class="fa-solid fa-arrow-down-left"></i>
+                            <span>0°로 이동</span>
+                        </button>
+                        <button id="btnAnimateTo90" class="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 rounded-lg text-xs font-bold transition flex items-center space-x-1">
+                            <i class="fa-solid fa-arrow-up-right"></i>
+                            <span>90°로 이동</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Right Column: Educational Concept & Length Visualizer (5 cols) -->
+        <section class="lg:col-span-5 flex flex-col space-y-5">
+
+            <!-- Concept Card 1: Live Segment Length Visualizer -->
+            <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 space-y-4">
+                <div class="flex items-center space-x-2 border-b border-slate-100 pb-3">
+                    <div class="p-2 bg-blue-100 text-blue-700 rounded-lg text-lg flex items-center justify-center">
+                        <i class="fa-solid fa-chart-simple"></i>
+                    </div>
+                    <h2 class="font-bold text-lg text-slate-800">길이 변화 한눈에 보기</h2>
+                </div>
+
+                <!-- Length Progress Bars -->
+                <div class="space-y-3">
+                    <!-- Segment BC (sin) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-bold text-slate-700">높이 $\overline{BC}$ ($\sin\theta$) [y축]</span>
+                            <span id="labelBC" class="font-mono font-bold text-red-600">0.00</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                            <div id="barBC" class="h-full bg-red-500 transition-all duration-150" style="width: 0%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Segment OC (cos) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-bold text-slate-700">밑변 $\overline{OC}$ ($\cos\theta$) [x축]</span>
+                            <span id="labelOC" class="font-mono font-bold text-emerald-600">1.00</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                            <div id="barOC" class="h-full bg-emerald-500 transition-all duration-150" style="width: 100%;"></div>
+                        </div>
+                    </div>
+
+                    <!-- Segment AT (tan) -->
+                    <div class="space-y-1">
+                        <div class="flex justify-between text-sm">
+                            <span class="font-bold text-slate-700">접선 $\overline{AT}$ ($\tan\theta$)</span>
+                            <span id="labelTAN" class="font-mono font-bold text-pink-600">0.00</span>
+                        </div>
+                        <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                            <div id="barTAN" class="h-full bg-pink-500 transition-all duration-150" style="width: 0%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dynamic Math Definition Card -->
+                <div class="bg-blue-50/70 border border-blue-200 rounded-xl p-4 text-sm text-slate-700 space-y-2">
+                    <p class="font-bold text-blue-900 flex items-center gap-1.5">
+                        <i class="fa-solid fa-calculator"></i>
+                        <span>삼각비의 정의 (반지름 $\overline{OB} = 1$)</span>
+                    </p>
+                    <div class="grid grid-cols-3 gap-1.5 text-center py-2 bg-white rounded-lg border border-blue-100 shadow-sm font-semibold text-xs">
+                        <div>$\sin\theta = \frac{\overline{BC}}{\overline{OB}} = \overline{BC}$</div>
+                        <div>$\cos\theta = \frac{\overline{OC}}{\overline{OB}} = \overline{OC}$</div>
+                        <div>$\tan\theta = \frac{\overline{AT}}{\overline{OA}} = \overline{AT}$</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Concept Card 2: Textbook Summary Conclusions -->
+            <div class="bg-gradient-to-br from-indigo-900 to-blue-900 text-white rounded-2xl p-5 shadow-sm space-y-4">
+                <h3 class="font-bold text-lg text-yellow-300 flex items-center space-x-2 border-b border-indigo-700/60 pb-2">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>교과서 핵심 정리: $0^\circ$와 $90^\circ$의 삼각비</span>
+                </h3>
+
+                <!-- 0 Degree Summary Box -->
+                <div id="summary0Box" class="p-3 bg-white/10 rounded-xl border border-white/10 space-y-1 transition duration-300">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-blue-200 text-sm">① $\angle BOA \to 0^\circ$ 일 때:</span>
+                        <span class="text-xs bg-yellow-400 text-slate-900 font-extrabold px-2 py-0.5 rounded">핵심!</span>
+                    </div>
+                    <p class="text-xs text-slate-200">
+                        높이 $\overline{BC} \to 0$, 밑변 $\overline{OC} \to 1$에 가까워지므로:
+                    </p>
+                    <div class="text-center font-bold text-lg text-white pt-1">
+                        $\sin 0^\circ = 0$, &nbsp;&nbsp; $\cos 0^\circ = 1$, &nbsp;&nbsp; $\tan 0^\circ = 0$
+                    </div>
+                </div>
+
+                <!-- 90 Degree Summary Box -->
+                <div id="summary90Box" class="p-3 bg-white/10 rounded-xl border border-white/10 space-y-1 transition duration-300">
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-indigo-200 text-sm">② $\angle BOA \to 90^\circ$ 일 때:</span>
+                    </div>
+                    <p class="text-xs text-slate-200">
+                        높이 $\overline{BC} \to 1$, 밑변 $\overline{OC} \to 0$에 가까워지므로:
+                    </p>
+                    <div class="text-center font-bold text-lg text-white pt-1">
+                        $\sin 90^\circ = 1$, &nbsp;&nbsp; $\cos 90^\circ = 0$, &nbsp;&nbsp; $\tan 90^\circ$ (정의안됨)
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pedagogy Tip Card -->
+            <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-xs text-amber-900 space-y-2">
+                <div class="font-bold text-sm text-amber-800 flex items-center space-x-1.5">
+                    <i class="fa-solid fa-chalkboard-user"></i>
+                    <span>수업 지도 팁 (선생님용)</span>
+                </div>
+                <ul class="list-disc list-inside space-y-1 pl-1 leading-relaxed">
+                    <li><b>'-' 버튼</b>을 연달아 눌러 $0^\circ$에 가까워질 때 <span class="font-bold text-red-600">빨간색 높이(변 BC)</span>가 0이 되고, x축 좌표에 <b>파란색 화살표</b>가 표시되는 것을 관찰시킵니다.</li>
+                    <li>모눈종이의 0.02 미세 눈금과 x축/y축의 파란 수치를 통해 정확한 삼각비 값을 읽는 연습을 시켜보세요.</li>
+                </ul>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 text-slate-400 py-3 text-center text-xs mt-6 border-t border-slate-700">
+        중학교 3학년 수학 | 삼각비의 값 시각화 교구 | 교과서 [그림 1] 완벽 연동
+    </footer>
+
+    <script>
+        // DOM Elements
+        const canvas = document.getElementById('trigCanvas');
+        const ctx = canvas.getContext('2d');
+        const slider = document.getElementById('angleSlider');
+        const angleValueDisplay = document.getElementById('angleValueDisplay');
+        const btnPlus = document.getElementById('btnPlus');
+        const btnMinus = document.getElementById('btnMinus');
+        const toggleGrid = document.getElementById('toggleGrid');
+        const toggleTrace = document.getElementById('toggleTrace');
+        const toggleTangent = document.getElementById('toggleTangent');
+        const canvasBCVal = document.getElementById('canvasBCVal');
+        const canvasOCVal = document.getElementById('canvasOCVal');
+        const canvasTANVal = document.getElementById('canvasTANVal');
+        const labelBC = document.getElementById('labelBC');
+        const labelOC = document.getElementById('labelOC');
+        const labelTAN = document.getElementById('labelTAN');
+        const barBC = document.getElementById('barBC');
+        const barOC = document.getElementById('barOC');
+        const barTAN = document.getElementById('barTAN');
+        const btnAnimateTo0 = document.getElementById('btnAnimateTo0');
+        const btnAnimateTo90 = document.getElementById('btnAnimateTo90');
+        const summary0Box = document.getElementById('summary0Box');
+        const summary90Box = document.getElementById('summary90Box');
+
+        // State variables
+        let currentAngle = 0; // Degree (0 to 90)
+        let animInterval = null;
+
+        function resizeCanvas() {
+            if (!canvas) return;
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            draw();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+
+        function setAngle(newAngle) {
+            currentAngle = Math.max(0, Math.min(90, Math.round(newAngle)));
+            slider.value = currentAngle;
+            angleValueDisplay.textContent = `${currentAngle}°`;
+
+            const rad = (currentAngle * Math.PI) / 180;
+            const sinVal = Math.sin(rad);
+            const cosVal = Math.cos(rad);
+            const tanVal = Math.tan(rad);
+
+            // Update Text Badge Outputs
+            canvasBCVal.textContent = sinVal.toFixed(2);
+            canvasOCVal.textContent = cosVal.toFixed(2);
+            canvasTANVal.textContent = currentAngle === 90 ? '∞' : tanVal.toFixed(2);
+
+            labelBC.textContent = sinVal.toFixed(2);
+            labelOC.textContent = cosVal.toFixed(2);
+            labelTAN.textContent = currentAngle === 90 ? '정의안됨(무한)' : tanVal.toFixed(2);
+
+            // Update Progress Bars
+            barBC.style.width = `${Math.min(100, sinVal * 100)}%`;
+            barOC.style.width = `${Math.min(100, cosVal * 100)}%`;
+            barTAN.style.width = currentAngle === 90 ? '100%' : `${Math.min(100, tanVal * 50)}%`;
+
+            // Highlight summary cards when near 0° or 90°
+            if (currentAngle <= 5) {
+                summary0Box.classList.add('ring-2', 'ring-yellow-400', 'bg-white/20');
+            } else {
+                summary0Box.classList.remove('ring-2', 'ring-yellow-400', 'bg-white/20');
+            }
+
+            if (currentAngle >= 85) {
+                summary90Box.classList.add('ring-2', 'ring-yellow-400', 'bg-white/20');
+            } else {
+                summary90Box.classList.remove('ring-2', 'ring-yellow-400', 'bg-white/20');
+            }
+
+            draw();
+        }
+
+        function draw() {
+            const w = canvas.getBoundingClientRect().width;
+            const h = canvas.getBoundingClientRect().height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Dynamic padding for axis numbers & labels
+            const paddingLeft = 55;
+            const paddingBottom = 45;
+            const paddingTop = 30;
+            const paddingRight = 45;
+
+            const originX = paddingLeft;
+            const originY = h - paddingBottom;
+            const radius = Math.min(w - paddingLeft - paddingRight, h - paddingTop - paddingBottom);
+
+            if (radius <= 0) return;
+
+            // 1. Draw Grid Paper (0.02 Subdivisions & 0.1 Major Lines)
+            if (toggleGrid.checked) {
+                const subdivisions = 50; // 0.02 step
+                const subStep = radius / subdivisions;
+
+                // Fine grid lines (0.02)
+                ctx.lineWidth = 0.5;
+                ctx.strokeStyle = '#e2e8f0';
+
+                for (let i = 0; i <= subdivisions; i++) {
+                    const gx = originX + i * subStep;
+                    const gy = originY - i * subStep;
+
+                    if (gx <= originX + radius * 1.1) {
+                        ctx.beginPath();
+                        ctx.moveTo(gx, paddingTop / 2);
+                        ctx.lineTo(gx, originY);
+                        ctx.stroke();
+                    }
+
+                    if (gy >= paddingTop / 2) {
+                        ctx.beginPath();
+                        ctx.moveTo(originX, gy);
+                        ctx.lineTo(originX + radius * 1.1, gy);
+                        ctx.stroke();
+                    }
+                }
+
+                // Major grid lines (0.1) & Major Tick Labels
+                ctx.lineWidth = 1.2;
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.fillStyle = '#64748b';
+                ctx.font = '500 12px Noto Sans KR, sans-serif';
+                ctx.textAlign = 'center';
+
+                for (let i = 0; i <= 10; i++) {
+                    const val = (i / 10).toFixed(1);
+                    const gx = originX + (i / 10) * radius;
+                    const gy = originY - (i / 10) * radius;
+
+                    // Major grid line horizontal & vertical
+                    ctx.beginPath();
+                    ctx.moveTo(gx, paddingTop / 2);
+                    ctx.lineTo(gx, originY);
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(originX, gy);
+                    ctx.lineTo(originX + radius * 1.1, gy);
+                    ctx.stroke();
+
+                    // Major Tick labels (0, 0.2, 0.4, 0.6, 0.8, 1)
+                    if (i % 2 === 0) {
+                        // X axis label
+                        ctx.fillText(val === '0.0' ? '0' : val, gx, originY + 20);
+                        // Y axis label
+                        ctx.textAlign = 'right';
+                        ctx.fillText(val === '0.0' ? '0' : val, originX - 10, gy + 4);
+                        ctx.textAlign = 'center';
+                    }
+                }
+            }
+
+            // 2. Draw Protractor Graphic (각도기 모형) at Origin O
+            const protractorR = radius * 0.45;
+            ctx.beginPath();
+            ctx.arc(originX, originY, protractorR, -Math.PI / 2, 0, false);
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+            ctx.fill();
+            ctx.strokeStyle = '#0284c7';
+            ctx.lineWidth = 1.5;
+            ctx.stroke();
+
+            // Protractor Ticks (every 10 degrees)
+            for (let deg = 0; deg <= 90; deg += 10) {
+                const r = (deg * Math.PI) / 180;
+                const innerR = protractorR - (deg % 30 === 0 ? 10 : 5);
+                const x1 = originX + innerR * Math.cos(r);
+                const y1 = originY - innerR * Math.sin(r);
+                const x2 = originX + protractorR * Math.cos(r);
+                const y2 = originY - protractorR * Math.sin(r);
+
+                ctx.beginPath();
+                ctx.moveTo(x1, y1);
+                ctx.lineTo(x2, y2);
+                ctx.strokeStyle = '#0284c7';
+                ctx.lineWidth = deg % 30 === 0 ? 1.5 : 1;
+                ctx.stroke();
+
+                if (deg % 30 === 0 && deg > 0 && deg < 90) {
+                    const textR = protractorR - 18;
+                    const tx = originX + textR * Math.cos(r);
+                    const ty = originY - textR * Math.sin(r);
+                    ctx.fillStyle = '#0369a1';
+                    ctx.font = 'bold 10px Noto Sans KR, sans-serif';
+                    ctx.fillText(`${deg}°`, tx, ty + 3);
+                }
+            }
+
+            // 3. Main Axes Lines (X & Y Axis)
+            ctx.lineWidth = 2.5;
+            ctx.strokeStyle = '#334155';
+
+            // X Axis
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(originX + radius * 1.1, originY);
+            ctx.stroke();
+
+            // Y Axis
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(originX, paddingTop / 2);
+            ctx.stroke();
+
+            // Quarter Circle Arc (Radius = 1)
+            ctx.beginPath();
+            ctx.arc(originX, originY, radius, -Math.PI / 2, 0, false);
+            ctx.strokeStyle = '#1e293b';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            // 4. Ghost Traces (교과서 [그림 1] 모식도)
+            if (toggleTrace.checked) {
+                const traceAngles = [15, 30, 45, 60, 75];
+                traceAngles.forEach(deg => {
+                    const r = (deg * Math.PI) / 180;
+                    const bx = originX + radius * Math.cos(r);
+                    const by = originY - radius * Math.sin(r);
+
+                    ctx.beginPath();
+                    ctx.moveTo(originX, originY);
+                    ctx.lineTo(bx, by);
+                    ctx.strokeStyle = 'rgba(148, 163, 184, 0.35)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+
+                    ctx.beginPath();
+                    ctx.moveTo(bx, by);
+                    ctx.lineTo(bx, originY);
+                    ctx.strokeStyle = 'rgba(239, 68, 68, 0.25)';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                });
+            }
+
+            // Current Angle Calculations
+            const rad = (currentAngle * Math.PI) / 180;
+            const cosVal = Math.cos(rad);
+            const sinVal = Math.sin(rad);
+            const tanVal = Math.tan(rad);
+
+            const bx = originX + radius * cosVal;
+            const by = originY - radius * sinVal;
+            const cx = bx;
+            const cy = originY;
+
+            // 5. Right Angle Marker at Point C
+            if (currentAngle > 3 && currentAngle < 87) {
+                const sqSize = 10;
+                ctx.beginPath();
+                ctx.moveTo(cx - sqSize, cy);
+                ctx.lineTo(cx - sqSize, cy - sqSize);
+                ctx.lineTo(cx, cy - sqSize);
+                ctx.strokeStyle = '#64748b';
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+            }
+
+            // 6. Base OC (cos) & Height BC (sin)
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(cx, cy);
+            ctx.strokeStyle = '#10b981'; // Green
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(bx, by);
+            ctx.lineTo(cx, cy);
+            ctx.strokeStyle = '#ef4444'; // Red
+            ctx.lineWidth = 4;
+            ctx.stroke();
+
+            // 7. Tangent Line AT at x = 1 (Pink)
+            const ax = originX + radius;
+            const ay = originY;
+            const tx = ax;
+            const ty = originY - radius * tanVal;
+
+            if (toggleTangent.checked && currentAngle < 88) {
+                // Extended Hypotenuse to Tangent Point T
+                ctx.beginPath();
+                ctx.moveTo(originX, originY);
+                ctx.lineTo(tx, ty);
+                ctx.strokeStyle = 'rgba(37, 99, 235, 0.4)';
+                ctx.setLineDash([3, 3]);
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Tangent Line AT
+                ctx.beginPath();
+                ctx.moveTo(ax, ay);
+                ctx.lineTo(tx, ty);
+                ctx.strokeStyle = '#ec4899'; // Pink
+                ctx.lineWidth = 3.5;
+                ctx.stroke();
+
+                // Point T
+                ctx.fillStyle = '#db2777';
+                ctx.beginPath();
+                ctx.arc(tx, ty, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.font = 'bold 14px Noto Sans KR, sans-serif';
+                ctx.fillText('T', tx + 12, ty + 4);
+            }
+
+            // 8. Main Hypotenuse OB (Blue)
+            ctx.beginPath();
+            ctx.moveTo(originX, originY);
+            ctx.lineTo(bx, by);
+            ctx.strokeStyle = '#2563eb'; // Blue
+            ctx.lineWidth = 3.5;
+            ctx.stroke();
+
+            // 9. Dynamic Callout Arrows & Axis Values (x축, y축 실시간 수치 표기)
+            ctx.font = 'bold 13px Noto Sans KR, sans-serif';
+
+            // Y-Axis Dashed Projection Line & Blue Callout Arrow for sin(theta)
+            if (currentAngle > 0 && currentAngle < 90) {
+                ctx.beginPath();
+                ctx.moveTo(bx, by);
+                ctx.lineTo(originX, by);
+                ctx.strokeStyle = '#0284c7';
+                ctx.setLineDash([4, 4]);
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Blue Pointer Arrow & Value on Y-axis
+                ctx.fillStyle = '#0284c7';
+                ctx.beginPath();
+                ctx.moveTo(originX, by);
+                ctx.lineTo(originX - 6, by - 4);
+                ctx.lineTo(originX - 6, by + 4);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.textAlign = 'right';
+                ctx.fillText(sinVal.toFixed(2), originX - 10, by + 4);
+            }
+
+            // X-Axis Callout Pointer Arrow for cos(theta)
+            if (currentAngle > 0 && currentAngle < 90) {
+                ctx.fillStyle = '#0284c7';
+                ctx.beginPath();
+                ctx.moveTo(cx, originY);
+                ctx.lineTo(cx - 4, originY + 6);
+                ctx.lineTo(cx + 4, originY + 6);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.textAlign = 'center';
+                ctx.fillText(cosVal.toFixed(2), cx, originY + 22);
+            }
+
+            // 10. Labels O, A, B, C
+            ctx.fillStyle = '#0f172a';
+            ctx.font = 'bold 16px Noto Sans KR, sans-serif';
+
+            // Point O
+            ctx.fillText('O', originX - 18, originY + 18);
+
+            // Point A
+            ctx.beginPath();
+            ctx.arc(ax, ay, 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('A', ax + 12, ay + 18);
+
+            // Point B
+            ctx.fillStyle = '#2563eb';
+            ctx.beginPath();
+            ctx.arc(bx, by, 5.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('B', bx - 8, by - 10);
+
+            // Point C
+            ctx.fillStyle = '#0f766e';
+            ctx.beginPath();
+            ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillText('C', cx - 4, cy + 38);
+        }
+
+        function stopAnimation() {
+            if (animInterval) {
+                clearInterval(animInterval);
+                animInterval = null;
+            }
+        }
+
+        function animateTo(targetDegree) {
+            stopAnimation();
+            animInterval = setInterval(() => {
+                if (currentAngle < targetDegree) {
+                    setAngle(currentAngle + 1);
+                } else if (currentAngle > targetDegree) {
+                    setAngle(currentAngle - 1);
+                } else {
+                    stopAnimation();
+                }
+            }, 30);
+        }
+
+        // Event Listeners for Controls
+        slider.addEventListener('input', (e) => {
+            stopAnimation();
+            setAngle(parseInt(e.target.value));
+        });
+
+        btnPlus.addEventListener('click', () => {
+            stopAnimation();
+            setAngle(currentAngle + 1);
+        });
+
+        btnMinus.addEventListener('click', () => {
+            stopAnimation();
+            setAngle(currentAngle - 1);
+        });
+
+        // Preset Angle Buttons
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                stopAnimation();
+                const targetAngle = parseInt(e.target.getAttribute('data-angle'));
+                setAngle(targetAngle);
+            });
+        });
+
+        // Auto Animation Buttons
+        btnAnimateTo0.addEventListener('click', () => animateTo(0));
+        btnAnimateTo90.addEventListener('click', () => animateTo(90));
+
+        // Checkbox Toggles
+        toggleGrid.addEventListener('change', draw);
+        toggleTrace.addEventListener('change', draw);
+        toggleTangent.addEventListener('change', draw);
+
+        // Keyboard Navigation (Arrow Keys)
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+                stopAnimation();
+                setAngle(currentAngle + 1);
+            } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
+                stopAnimation();
+                setAngle(currentAngle - 1);
+            }
+        });
+
+        // Initial setup on window load
+        window.onload = function () {
+            resizeCanvas();
+            setAngle(0);
+            
+            // Re-render MathJax formula typesetting if library loaded
+            if (window.MathJax && MathJax.typesetPromise) {
+                MathJax.typesetPromise();
+            }
+        };
+    </script>
+</body>
+</html>
