@@ -36,7 +36,6 @@
             box-sizing: border-box;
         }
         
-        /* Fallback styling in case Tailwind CDN fails offline */
         canvas {
             display: block;
             touch-action: none;
@@ -56,18 +55,21 @@
         input[type=range]::-webkit-slider-thumb:hover {
             transform: scale(1.15);
         }
-        
-        /* Responsive Layout fallback container */
-        .app-container {
-            max-width: 1200px;
-            margin: 0 auto;
+
+        /* Modal backdrop blur & animations */
+        .modal-enter {
+            animation: modalFadeIn 0.25s ease-out forwards;
+        }
+        @keyframes modalFadeIn {
+            from { opacity: 0; transform: scale(0.96); }
+            to { opacity: 1; transform: scale(1); }
         }
     </style>
 </head>
-<body class="min-h-screen text-slate-800 flex flex-col justify-between bg-slate-50">
+<body class="min-h-screen text-slate-800 flex flex-col justify-between bg-slate-50 relative">
 
     <!-- Header -->
-    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-4 px-6 shadow-md">
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white py-4 px-6 shadow-md sticky top-0 z-20">
         <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-center gap-3">
             <div class="flex items-center space-x-3">
                 <div class="bg-white/20 p-2.5 rounded-xl text-2xl flex items-center justify-center">
@@ -78,10 +80,12 @@
                     <p class="text-xs md:text-sm text-blue-200">중학교 3학년 수학 | 교과서 [그림 1] 연동 시각화 교구</p>
                 </div>
             </div>
-            <div class="bg-blue-900/50 backdrop-blur px-4 py-2 rounded-lg text-sm border border-blue-400/30 flex items-center space-x-2">
-                <i class="fa-solid fa-lightbulb text-yellow-300"></i>
-                <span>$\angle BOA$가 $0^\circ$로 줄어들 때 변 $\overline{BC}$의 변화를 관찰해보세요!</span>
-            </div>
+
+            <!-- Top Action Button: tan 90° Simulation Modal -->
+            <button id="openSimBtn" class="bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-500 hover:to-amber-600 text-slate-950 font-extrabold px-4 py-2.5 rounded-xl shadow-lg border border-amber-300 flex items-center space-x-2 transition transform hover:scale-105 active:scale-95 animate-pulse">
+                <i class="fa-solid fa-rocket text-lg"></i>
+                <span class="text-sm">🔥 tan 90° 시뮬레이션 열기</span>
+            </button>
         </div>
     </header>
 
@@ -288,6 +292,10 @@
                 <div id="summary90Box" class="p-3 bg-white/10 rounded-xl border border-white/10 space-y-1 transition duration-300">
                     <div class="flex justify-between items-center">
                         <span class="font-bold text-indigo-200 text-sm">② $\angle BOA \to 90^\circ$ 일 때:</span>
+                        <button id="btnOpenSimInSummary" class="text-xs bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-2 py-1 rounded transition flex items-center space-x-1">
+                            <i class="fa-solid fa-magnifying-glass-plus"></i>
+                            <span>tan 90° 탐구하기</span>
+                        </button>
                     </div>
                     <p class="text-xs text-slate-200">
                         높이 $\overline{BC} \to 1$, 밑변 $\overline{OC} \to 0$에 가까워지므로:
@@ -305,21 +313,147 @@
                     <span>수업 지도 팁 (선생님용)</span>
                 </div>
                 <ul class="list-disc list-inside space-y-1 pl-1 leading-relaxed">
-                    <li><b>'-' 버튼</b>을 연달아 눌러 $0^\circ$에 가까워질 때 <span class="font-bold text-red-600">빨간색 높이(변 BC)</span>가 0이 되고, x축 좌표에 <b>파란색 화살표</b>가 표시되는 것을 관찰시킵니다.</li>
-                    <li>모눈종이의 0.02 미세 눈금과 x축/y축의 파란 수치를 통해 정확한 삼각비 값을 읽는 연습을 시켜보세요.</li>
+                    <li><b>[tan 90° 시뮬레이션]</b> 버튼을 누르면 축소 사분원 창에서 $\tan 80^\circ \approx 5.67$ 지점까지 교점이 뚜렷하게 관찰됩니다.</li>
+                    <li>$90^\circ$가 되는 순간 **동경과 접선이 완벽하게 평행**하여 교점이 영원히 존재하지 않는 모습을 관찰하게 해주세요.</li>
                 </ul>
             </div>
 
         </section>
     </main>
 
+    <!-- Modal: tan 90° Simulation Viewport -->
+    <div id="simModal" class="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-3 md:p-6 hidden">
+        <div class="bg-slate-900 text-white rounded-3xl shadow-2xl border border-slate-700 w-full max-w-5xl flex flex-col max-h-[95vh] overflow-hidden modal-enter">
+            
+            <!-- Modal Header -->
+            <div class="p-4 md:px-6 md:py-4 bg-slate-800/80 border-b border-slate-700 flex justify-between items-center">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-amber-500/20 text-amber-400 rounded-xl flex items-center justify-center text-xl font-bold">
+                        <i class="fa-solid fa-infinity"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg md:text-xl font-extrabold text-white flex items-center gap-2">
+                            <span>tan 90° 값은 왜 존재하지 않을까?</span>
+                            <span class="text-xs font-semibold px-2 py-0.5 bg-amber-400/20 text-amber-300 rounded-md border border-amber-400/30">탐구 시뮬레이션</span>
+                        </h2>
+                        <p class="text-xs text-slate-400">축소된 사분원에서 tan 80° 지점의 교점과 90°에서의 평행 상태를 관찰해보세요.</p>
+                    </div>
+                </div>
+                <button id="closeSimBtn" class="w-10 h-10 bg-slate-700 hover:bg-slate-600 text-slate-300 hover:text-white rounded-full flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+
+            <!-- Modal Content (Grid: Canvas Left, Info Right) -->
+            <div class="p-4 md:p-5 overflow-y-auto grid grid-cols-1 md:grid-cols-12 gap-6 flex-grow">
+                
+                <!-- Left: Zoomed Out Canvas -->
+                <div class="md:col-span-7 flex flex-col items-center">
+                    <div class="w-full relative bg-slate-950 rounded-2xl overflow-hidden border border-slate-800 flex items-center justify-center h-[650px]">
+                        <canvas id="simCanvas" class="w-full h-full"></canvas>
+
+                        <!-- Dynamic Angle Banner Overlay -->
+                        <div class="absolute top-4 left-4 bg-slate-900/90 border border-slate-700 backdrop-blur px-3.5 py-2 rounded-xl text-xs md:text-sm font-semibold flex items-center space-x-3 shadow-lg">
+                            <div>각도: <span id="simAngleText" class="text-amber-400 font-mono font-bold text-base">0.0°</span></div>
+                            <div class="h-4 w-px bg-slate-700"></div>
+                            <div>tan(θ): <span id="simTanText" class="text-emerald-400 font-mono font-bold text-base">0.0000</span></div>
+                        </div>
+
+                        <!-- Parallel / Infinity Alert Callout Banner -->
+                        <div id="simStatusBanner" class="absolute bottom-4 left-4 right-4 bg-emerald-950/90 border border-emerald-500/50 text-emerald-200 p-3 rounded-xl text-xs md:text-sm text-center shadow-2xl transition duration-300 hidden">
+                            <!-- Populated dynamically in JS -->
+                        </div>
+                    </div>
+
+                    <!-- Simulation Controls -->
+                    <div class="w-full mt-3 flex items-center justify-between bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 gap-2 flex-wrap">
+                        <div class="flex items-center space-x-2">
+                            <button id="btnSimPlay" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs md:text-sm transition flex items-center space-x-1.5 shadow">
+                                <i class="fa-solid fa-play"></i>
+                                <span>시뮬레이션 시작</span>
+                            </button>
+                            <button id="btnSimReset" class="px-3 py-2 bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold rounded-xl text-xs md:text-sm transition flex items-center space-x-1">
+                                <i class="fa-solid fa-rotate-left"></i>
+                                <span>처음부터</span>
+                            </button>
+                        </div>
+
+                        <div class="flex items-center space-x-1 text-xs font-semibold">
+                            <span class="text-slate-400 mr-1">속도:</span>
+                            <button class="sim-speed-btn px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded-lg text-white transition" data-speed="0.5">0.5x</button>
+                            <button class="sim-speed-btn px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded-lg text-white transition" data-speed="1">1x</button>
+                            <button class="sim-speed-btn px-2.5 py-1 bg-slate-700 hover:bg-slate-600 rounded-lg text-white transition" data-speed="2">2x</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right: Explanatory Concept Cards -->
+                <div class="md:col-span-5 flex flex-col space-y-4 text-xs md:text-sm">
+                    
+                    <!-- Concept Box 1: Geometric Parallelism -->
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-2">
+                        <div class="flex items-center space-x-2 text-amber-400 font-bold text-sm border-b border-slate-700 pb-2">
+                            <i class="fa-solid fa-lines-leaning"></i>
+                            <span>1. 기하학적 이유: 평행선(Parallel)</span>
+                        </div>
+                        <p class="text-slate-300 leading-relaxed">
+                            $\tan\theta$는 **직선 $x=1$(접선)**과 **각도 $\theta$를 이루는 동경(반지름)**이 만나는 **교점의 y좌표**입니다.
+                        </p>
+                        <p class="text-amber-200 font-semibold bg-amber-950/40 p-2.5 rounded-xl border border-amber-800/40">
+                            $\theta = 90^\circ$가 되면 두 직선이 **완전히 평행**해져서 영원히 교점이 생기지 않습니다!
+                        </p>
+                    </div>
+
+                    <!-- Concept Box 2: Algebraic Division by Zero -->
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-2">
+                        <div class="flex items-center space-x-2 text-emerald-400 font-bold text-sm border-b border-slate-700 pb-2">
+                            <i class="fa-solid fa-calculator"></i>
+                            <span>2. 대수적 이유: 0으로 나누기 불가능</span>
+                        </div>
+                        <p class="text-slate-300 leading-relaxed">
+                            삼각비의 관계식에 의해 탄젠트는 다음과 같습니다:
+                        </p>
+                        <div class="text-center font-mono font-bold text-base bg-slate-900 p-2 rounded-xl text-emerald-300 border border-slate-700">
+                            $\tan 90^\circ = \frac{\sin 90^\circ}{\cos 90^\circ} = \frac{1}{0}$
+                        </div>
+                        <p class="text-slate-400 text-xs">
+                            수학에서는 분모가 $0$인 나눗셈을 정의할 수 없으므로, $\tan 90^\circ$의 값은 존재하지 않습니다.
+                        </p>
+                    </div>
+
+                    <!-- Concept Box 3: Values Exploration -->
+                    <div class="bg-slate-800/90 border border-slate-700 rounded-2xl p-4 space-y-2 flex-grow flex flex-col justify-between">
+                        <div class="space-y-2">
+                            <div class="flex items-center space-x-2 text-indigo-400 font-bold text-sm border-b border-slate-700 pb-2">
+                                <i class="fa-solid fa-arrow-up-right-dots"></i>
+                                <span>3. 각도에 따른 tan 값의 폭발적 증가</span>
+                            </div>
+                            <div class="space-y-1 font-mono text-xs text-slate-300">
+                                <div class="flex justify-between"><span>tan(0°)</span><span class="text-emerald-400 font-bold">0.0000</span></div>
+                                <div class="flex justify-between"><span>tan(45°)</span><span class="text-emerald-400 font-bold">1.0000</span></div>
+                                <div class="flex justify-between"><span>tan(60°)</span><span class="text-emerald-400 font-bold">1.7321</span></div>
+                                <div class="flex justify-between text-amber-300 font-bold"><span>tan(80°)</span><span>5.6713 (화면 상단 관찰 가능!)</span></div>
+                                <div class="flex justify-between text-pink-400 font-bold"><span>tan(89°)</span><span>57.2900</span></div>
+                                <div class="flex justify-between text-red-400 font-bold"><span>tan(89.9°)</span><span>572.9572</span></div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 bg-slate-900/60 p-2 rounded-lg italic">
+                            각도가 $90^\circ$에 한없이 가까워질수록 탄젠트 값은 무한히 커집니다(무한대 발산).
+                        </p>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
-    <footer class="bg-slate-800 text-slate-400 py-3 text-center text-xs mt-6 border-t border-slate-700">
+    <footer class="bg-slate-800 text-slate-400 py-3 text-center text-xs border-t border-slate-700">
         중학교 3학년 수학 | 삼각비의 값 시각화 교구 | 교과서 [그림 1] 완벽 연동
     </footer>
 
     <script>
-        // DOM Elements
+        // DOM Elements - Main App
         const canvas = document.getElementById('trigCanvas');
         const ctx = canvas.getContext('2d');
         const slider = document.getElementById('angleSlider');
@@ -343,27 +477,44 @@
         const summary0Box = document.getElementById('summary0Box');
         const summary90Box = document.getElementById('summary90Box');
 
-        // State variables
+        // DOM Elements - Modal & Modal Canvas
+        const simModal = document.getElementById('simModal');
+        const openSimBtn = document.getElementById('openSimBtn');
+        const btnOpenSimInSummary = document.getElementById('btnOpenSimInSummary');
+        const closeSimBtn = document.getElementById('closeSimBtn');
+        const simCanvas = document.getElementById('simCanvas');
+        const simCtx = simCanvas ? simCanvas.getContext('2d') : null;
+        const simAngleText = document.getElementById('simAngleText');
+        const simTanText = document.getElementById('simTanText');
+        const simStatusBanner = document.getElementById('simStatusBanner');
+        const btnSimPlay = document.getElementById('btnSimPlay');
+        const btnSimReset = document.getElementById('btnSimReset');
+
+        // State variables - Main
         let currentAngle = 0; // Degree (0 to 90)
         let animInterval = null;
 
-        function resizeCanvas() {
-          // 캔버스 요소와 부모 컨테이너 크기 맞추기
-    const container = canvas.parentElement;
-    canvas.width = container.clientWidth;
-    canvas.height = container.clientHeight;
-    
-    // 재그리기 함수 호출
-    draw();
-        }
+        // State variables - Modal Simulator
+        let simAngle = 0;
+        let simAnimationId = null;
+        let isSimRunning = false;
+        let simSpeedMultiplier = 1;
+        let simCanvasSize = { width: 400, height: 650 };
 
-        window.addEventListener('resize', resizeCanvas);
-     resizeCanvas();
+        function resizeCanvas() {
+            if (!canvas) return;
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+            draw();
+        }
 
         function setAngle(newAngle) {
             currentAngle = Math.max(0, Math.min(90, Math.round(newAngle)));
-            slider.value = currentAngle;
-            angleValueDisplay.textContent = `${currentAngle}°`;
+            if (slider) slider.value = currentAngle;
+            if (angleValueDisplay) angleValueDisplay.textContent = `${currentAngle}°`;
 
             const rad = (currentAngle * Math.PI) / 180;
             const sinVal = Math.sin(rad);
@@ -371,42 +522,40 @@
             const tanVal = Math.tan(rad);
 
             // Update Text Badge Outputs
-            canvasBCVal.textContent = sinVal.toFixed(2);
-            canvasOCVal.textContent = cosVal.toFixed(2);
-            canvasTANVal.textContent = currentAngle === 90 ? '∞' : tanVal.toFixed(2);
+            if (canvasBCVal) canvasBCVal.textContent = sinVal.toFixed(2);
+            if (canvasOCVal) canvasOCVal.textContent = cosVal.toFixed(2);
+            if (canvasTANVal) canvasTANVal.textContent = currentAngle === 90 ? '∞' : tanVal.toFixed(2);
 
-            labelBC.textContent = sinVal.toFixed(2);
-            labelOC.textContent = cosVal.toFixed(2);
-            labelTAN.textContent = currentAngle === 90 ? '정의안됨(무한)' : tanVal.toFixed(2);
+            if (labelBC) labelBC.textContent = sinVal.toFixed(2);
+            if (labelOC) labelOC.textContent = cosVal.toFixed(2);
+            if (labelTAN) labelTAN.textContent = currentAngle === 90 ? '정의안됨(무한)' : tanVal.toFixed(2);
 
             // Update Progress Bars
-            barBC.style.width = `${Math.min(100, sinVal * 100)}%`;
-            barOC.style.width = `${Math.min(100, cosVal * 100)}%`;
-            barTAN.style.width = currentAngle === 90 ? '100%' : `${Math.min(100, tanVal * 50)}%`;
+            if (barBC) barBC.style.width = `${Math.min(100, sinVal * 100)}%`;
+            if (barOC) barOC.style.width = `${Math.min(100, cosVal * 100)}%`;
+            if (barTAN) barTAN.style.width = currentAngle === 90 ? '100%' : `${Math.min(100, tanVal * 50)}%`;
 
             // Highlight summary cards when near 0° or 90°
-            if (currentAngle <= 5) {
-                summary0Box.classList.add('ring-2', 'ring-yellow-400', 'bg-white/20');
-            } else {
-                summary0Box.classList.remove('ring-2', 'ring-yellow-400', 'bg-white/20');
+            if (summary0Box) {
+                if (currentAngle <= 5) summary0Box.classList.add('ring-2', 'ring-yellow-400', 'bg-white/20');
+                else summary0Box.classList.remove('ring-2', 'ring-yellow-400', 'bg-white/20');
             }
 
-            if (currentAngle >= 85) {
-                summary90Box.classList.add('ring-2', 'ring-yellow-400', 'bg-white/20');
-            } else {
-                summary90Box.classList.remove('ring-2', 'ring-yellow-400', 'bg-white/20');
+            if (summary90Box) {
+                if (currentAngle >= 85) summary90Box.classList.add('ring-2', 'ring-yellow-400', 'bg-white/20');
+                else summary90Box.classList.remove('ring-2', 'ring-yellow-400', 'bg-white/20');
             }
 
             draw();
         }
 
         function draw() {
+            if (!canvas || !ctx) return;
             const w = canvas.getBoundingClientRect().width;
             const h = canvas.getBoundingClientRect().height;
 
             ctx.clearRect(0, 0, w, h);
 
-            // Dynamic padding for axis numbers & labels
             const paddingLeft = 55;
             const paddingBottom = 45;
             const paddingTop = 30;
@@ -418,12 +567,11 @@
 
             if (radius <= 0) return;
 
-            // 1. Draw Grid Paper (0.02 Subdivisions & 0.1 Major Lines)
-            if (toggleGrid.checked) {
-                const subdivisions = 50; // 0.02 step
+            // 1. Grid Paper
+            if (toggleGrid && toggleGrid.checked) {
+                const subdivisions = 50;
                 const subStep = radius / subdivisions;
 
-                // Fine grid lines (0.02)
                 ctx.lineWidth = 0.5;
                 ctx.strokeStyle = '#e2e8f0';
 
@@ -446,7 +594,6 @@
                     }
                 }
 
-                // Major grid lines (0.1) & Major Tick Labels
                 ctx.lineWidth = 1.2;
                 ctx.strokeStyle = '#cbd5e1';
                 ctx.fillStyle = '#64748b';
@@ -458,7 +605,6 @@
                     const gx = originX + (i / 10) * radius;
                     const gy = originY - (i / 10) * radius;
 
-                    // Major grid line horizontal & vertical
                     ctx.beginPath();
                     ctx.moveTo(gx, paddingTop / 2);
                     ctx.lineTo(gx, originY);
@@ -469,11 +615,8 @@
                     ctx.lineTo(originX + radius * 1.1, gy);
                     ctx.stroke();
 
-                    // Major Tick labels (0, 0.2, 0.4, 0.6, 0.8, 1)
                     if (i % 2 === 0) {
-                        // X axis label
                         ctx.fillText(val === '0.0' ? '0' : val, gx, originY + 20);
-                        // Y axis label
                         ctx.textAlign = 'right';
                         ctx.fillText(val === '0.0' ? '0' : val, originX - 10, gy + 4);
                         ctx.textAlign = 'center';
@@ -481,7 +624,7 @@
                 }
             }
 
-            // 2. Draw Protractor Graphic (각도기 모형) at Origin O
+            // 2. Protractor Graphic
             const protractorR = radius * 0.45;
             ctx.beginPath();
             ctx.arc(originX, originY, protractorR, -Math.PI / 2, 0, false);
@@ -491,7 +634,6 @@
             ctx.lineWidth = 1.5;
             ctx.stroke();
 
-            // Protractor Ticks (every 10 degrees)
             for (let deg = 0; deg <= 90; deg += 10) {
                 const r = (deg * Math.PI) / 180;
                 const innerR = protractorR - (deg % 30 === 0 ? 10 : 5);
@@ -517,31 +659,28 @@
                 }
             }
 
-            // 3. Main Axes Lines (X & Y Axis)
+            // 3. Axes & Quarter Circle Arc
             ctx.lineWidth = 2.5;
             ctx.strokeStyle = '#334155';
 
-            // X Axis
             ctx.beginPath();
             ctx.moveTo(originX, originY);
             ctx.lineTo(originX + radius * 1.1, originY);
             ctx.stroke();
 
-            // Y Axis
             ctx.beginPath();
             ctx.moveTo(originX, originY);
             ctx.lineTo(originX, paddingTop / 2);
             ctx.stroke();
 
-            // Quarter Circle Arc (Radius = 1)
             ctx.beginPath();
             ctx.arc(originX, originY, radius, -Math.PI / 2, 0, false);
             ctx.strokeStyle = '#1e293b';
             ctx.lineWidth = 2;
             ctx.stroke();
 
-            // 4. Ghost Traces (교과서 [그림 1] 모식도)
-            if (toggleTrace.checked) {
+            // 4. Ghost Traces
+            if (toggleTrace && toggleTrace.checked) {
                 const traceAngles = [15, 30, 45, 60, 75];
                 traceAngles.forEach(deg => {
                     const r = (deg * Math.PI) / 180;
@@ -575,41 +714,28 @@
             const cx = bx;
             const cy = originY;
 
-            // 5. Right Angle Marker at Point C
-            if (currentAngle > 3 && currentAngle < 87) {
-                const sqSize = 10;
-                ctx.beginPath();
-                ctx.moveTo(cx - sqSize, cy);
-                ctx.lineTo(cx - sqSize, cy - sqSize);
-                ctx.lineTo(cx, cy - sqSize);
-                ctx.strokeStyle = '#64748b';
-                ctx.lineWidth = 1.2;
-                ctx.stroke();
-            }
-
-            // 6. Base OC (cos) & Height BC (sin)
+            // Base OC & Height BC
             ctx.beginPath();
             ctx.moveTo(originX, originY);
             ctx.lineTo(cx, cy);
-            ctx.strokeStyle = '#10b981'; // Green
+            ctx.strokeStyle = '#10b981';
             ctx.lineWidth = 4;
             ctx.stroke();
 
             ctx.beginPath();
             ctx.moveTo(bx, by);
             ctx.lineTo(cx, cy);
-            ctx.strokeStyle = '#ef4444'; // Red
+            ctx.strokeStyle = '#ef4444';
             ctx.lineWidth = 4;
             ctx.stroke();
 
-            // 7. Tangent Line AT at x = 1 (Pink)
+            // Tangent Line AT
             const ax = originX + radius;
             const ay = originY;
             const tx = ax;
             const ty = originY - radius * tanVal;
 
-            if (toggleTangent.checked && currentAngle < 88) {
-                // Extended Hypotenuse to Tangent Point T
+            if (toggleTangent && toggleTangent.checked && currentAngle < 88) {
                 ctx.beginPath();
                 ctx.moveTo(originX, originY);
                 ctx.lineTo(tx, ty);
@@ -619,15 +745,13 @@
                 ctx.stroke();
                 ctx.setLineDash([]);
 
-                // Tangent Line AT
                 ctx.beginPath();
                 ctx.moveTo(ax, ay);
                 ctx.lineTo(tx, ty);
-                ctx.strokeStyle = '#ec4899'; // Pink
+                ctx.strokeStyle = '#ec4899';
                 ctx.lineWidth = 3.5;
                 ctx.stroke();
 
-                // Point T
                 ctx.fillStyle = '#db2777';
                 ctx.beginPath();
                 ctx.arc(tx, ty, 5, 0, Math.PI * 2);
@@ -636,81 +760,284 @@
                 ctx.fillText('T', tx + 12, ty + 4);
             }
 
-            // 8. Main Hypotenuse OB (Blue)
+            // Main Hypotenuse OB
             ctx.beginPath();
             ctx.moveTo(originX, originY);
             ctx.lineTo(bx, by);
-            ctx.strokeStyle = '#2563eb'; // Blue
+            ctx.strokeStyle = '#2563eb';
             ctx.lineWidth = 3.5;
             ctx.stroke();
 
-            // 9. Dynamic Callout Arrows & Axis Values (x축, y축 실시간 수치 표기)
-            ctx.font = 'bold 13px Noto Sans KR, sans-serif';
-
-            // Y-Axis Dashed Projection Line & Blue Callout Arrow for sin(theta)
-            if (currentAngle > 0 && currentAngle < 90) {
-                ctx.beginPath();
-                ctx.moveTo(bx, by);
-                ctx.lineTo(originX, by);
-                ctx.strokeStyle = '#0284c7';
-                ctx.setLineDash([4, 4]);
-                ctx.lineWidth = 1.5;
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                // Blue Pointer Arrow & Value on Y-axis
-                ctx.fillStyle = '#0284c7';
-                ctx.beginPath();
-                ctx.moveTo(originX, by);
-                ctx.lineTo(originX - 6, by - 4);
-                ctx.lineTo(originX - 6, by + 4);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.textAlign = 'right';
-                ctx.fillText(sinVal.toFixed(2), originX - 10, by + 4);
-            }
-
-            // X-Axis Callout Pointer Arrow for cos(theta)
-            if (currentAngle > 0 && currentAngle < 90) {
-                ctx.fillStyle = '#0284c7';
-                ctx.beginPath();
-                ctx.moveTo(cx, originY);
-                ctx.lineTo(cx - 4, originY + 6);
-                ctx.lineTo(cx + 4, originY + 6);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.textAlign = 'center';
-                ctx.fillText(cosVal.toFixed(2), cx, originY + 22);
-            }
-
-            // 10. Labels O, A, B, C
+            // Labels O, A, B, C
             ctx.fillStyle = '#0f172a';
             ctx.font = 'bold 16px Noto Sans KR, sans-serif';
-
-            // Point O
             ctx.fillText('O', originX - 18, originY + 18);
 
-            // Point A
             ctx.beginPath();
             ctx.arc(ax, ay, 4, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillText('A', ax + 12, ay + 18);
 
-            // Point B
             ctx.fillStyle = '#2563eb';
             ctx.beginPath();
             ctx.arc(bx, by, 5.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillText('B', bx - 8, by - 10);
 
-            // Point C
             ctx.fillStyle = '#0f766e';
             ctx.beginPath();
             ctx.arc(cx, cy, 4.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.fillText('C', cx - 4, cy + 38);
+        }
+
+        function setupSimCanvas() {
+            if (!simCanvas || !simCtx) return { width: 400, height: 650 };
+            const rect = simCanvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            simCanvas.width = rect.width * dpr;
+            simCanvas.height = rect.height * dpr;
+            simCtx.scale(dpr, dpr);
+            return { width: rect.width, height: rect.height };
+        }
+
+        function drawParallelArrow(context, x, y) {
+            context.fillStyle = '#f59e0b';
+            context.beginPath();
+            context.moveTo(x, y);
+            context.lineTo(x - 5, y + 10);
+            context.lineTo(x + 5, y + 10);
+            context.closePath();
+            context.fill();
+        }
+
+        function drawSimCanvas() {
+            if (!simCanvas || !simCtx) return;
+            const w = simCanvasSize.width;
+            const h = simCanvasSize.height;
+
+            const cx = w * 0.22;
+            const cy = h * 0.93;
+            
+            // Calculate scale radius so tan(80°) ≈ 5.67 fits comfortably inside visible top margin
+            const availableHeight = cy - 40;
+            const radius = Math.max(45, Math.min(75, availableHeight / 6.8));
+
+            simCtx.clearRect(0, 0, w, h);
+
+            // Axes
+            simCtx.strokeStyle = '#475569';
+            simCtx.lineWidth = 1.5;
+
+            // X Axis
+            simCtx.beginPath();
+            simCtx.moveTo(15, cy);
+            simCtx.lineTo(w - 15, cy);
+            simCtx.stroke();
+
+            // Y Axis
+            simCtx.beginPath();
+            simCtx.moveTo(cx, 15);
+            simCtx.lineTo(cx, h - 15);
+            simCtx.stroke();
+
+            // Mini Unit Circle
+            simCtx.strokeStyle = '#64748b';
+            simCtx.lineWidth = 1.5;
+            simCtx.beginPath();
+            simCtx.arc(cx, cy, radius, -Math.PI / 2, 0);
+            simCtx.stroke();
+
+            // Tangent Line x = 1
+            const tanX = cx + radius;
+            simCtx.strokeStyle = '#10b981';
+            simCtx.lineWidth = 2.5;
+            simCtx.beginPath();
+            simCtx.moveTo(tanX, cy);
+            simCtx.lineTo(tanX, 15);
+            simCtx.stroke();
+
+            simCtx.fillStyle = '#34d399';
+            simCtx.font = 'bold 11px Noto Sans KR, sans-serif';
+            simCtx.fillText('접선 (x = 1)', tanX + 6, cy + 15);
+
+            const rad = (simAngle * Math.PI) / 180;
+            const isExact90 = Math.abs(simAngle - 90) < 0.001;
+
+            if (isExact90) {
+                simCtx.strokeStyle = '#f59e0b';
+                simCtx.lineWidth = 3.5;
+                simCtx.beginPath();
+                simCtx.moveTo(cx, cy);
+                simCtx.lineTo(cx, 15);
+                simCtx.stroke();
+
+                drawParallelArrow(simCtx, cx, 100);
+                drawParallelArrow(simCtx, tanX, 100);
+
+                if (simStatusBanner) {
+                    simStatusBanner.classList.remove('hidden');
+                    simStatusBanner.innerHTML = `
+                        <div class="font-extrabold text-amber-300 text-sm mb-0.5">⚠️ 동경과 접선이 완벽하게 평행(Parallel)합니다!</div>
+                        <div>두 직선이 만나지 않아 교점이 존재하지 않으므로 <span class="underline font-bold">tan 90° 값은 존재하지 않습니다.</span></div>
+                    `;
+                }
+            } else {
+                const tanVal = Math.tan(rad);
+                const tanY = cy - radius * tanVal;
+
+                simCtx.strokeStyle = '#818cf8';
+                simCtx.lineWidth = 2.5;
+                simCtx.beginPath();
+                simCtx.moveTo(cx, cy);
+
+                if (tanY >= 15) {
+                    simCtx.lineTo(tanX, tanY);
+                    simCtx.stroke();
+
+                    simCtx.fillStyle = '#34d399';
+                    simCtx.beginPath();
+                    simCtx.arc(tanX, tanY, 5, 0, Math.PI * 2);
+                    simCtx.fill();
+
+                    simCtx.strokeStyle = '#34d399';
+                    simCtx.lineWidth = 4;
+                    simCtx.beginPath();
+                    simCtx.moveTo(tanX, cy);
+                    simCtx.lineTo(tanX, tanY);
+                    simCtx.stroke();
+
+                    // Display tan value point label when angle is around 80 deg
+                    if (simAngle >= 78 && simAngle <= 83) {
+                        simCtx.fillStyle = '#fbbf24';
+                        simCtx.font = 'bold 13px Noto Sans KR, sans-serif';
+                        simCtx.fillText(`👈 tan(${simAngle.toFixed(0)}°) ≈ ${tanVal.toFixed(2)}`, tanX + 10, tanY + 4);
+
+                        // Reference guide line to Y axis
+                        simCtx.beginPath();
+                        simCtx.moveTo(tanX, tanY);
+                        simCtx.lineTo(cx, tanY);
+                        simCtx.strokeStyle = 'rgba(251, 191, 36, 0.4)';
+                        simCtx.setLineDash([3, 3]);
+                        simCtx.lineWidth = 1;
+                        simCtx.stroke();
+                        simCtx.setLineDash([]);
+                    }
+                } else {
+                    const topX = cx + (cy - 15) / Math.tan(rad);
+                    simCtx.lineTo(topX, 15);
+                    simCtx.stroke();
+
+                    simCtx.strokeStyle = '#34d399';
+                    simCtx.lineWidth = 4;
+                    simCtx.beginPath();
+                    simCtx.moveTo(tanX, cy);
+                    simCtx.lineTo(tanX, 15);
+                    simCtx.stroke();
+
+                    simCtx.fillStyle = '#34d399';
+                    simCtx.beginPath();
+                    simCtx.moveTo(tanX, 15);
+                    simCtx.lineTo(tanX - 6, 25);
+                    simCtx.lineTo(tanX + 6, 25);
+                    simCtx.fill();
+                }
+
+                if (simStatusBanner) {
+                    if (simAngle >= 83) {
+                        simStatusBanner.classList.remove('hidden');
+                        simStatusBanner.innerHTML = `
+                            <div class="font-bold text-amber-300">🚀 tan 값이 폭발적으로 커지는 중!</div>
+                            <div>접선의 길이가 화면 위 무한한 방향으로 치솟고 있습니다.</div>
+                        `;
+                    } else {
+                        simStatusBanner.classList.add('hidden');
+                    }
+                }
+            }
+
+            simCtx.fillStyle = '#94a3b8';
+            simCtx.font = '11px Noto Sans KR, sans-serif';
+            simCtx.fillText('O', cx - 12, cy + 14);
+
+            if (simAngleText) simAngleText.textContent = `${simAngle.toFixed(1)}°`;
+            if (simTanText) {
+                if (isExact90) {
+                    simTanText.textContent = '없음 (∞)';
+                    simTanText.className = 'font-mono font-extrabold text-red-400 text-sm animate-pulse';
+                } else {
+                    simTanText.textContent = Math.tan(rad).toFixed(4);
+                    simTanText.className = 'font-mono font-extrabold text-emerald-400 text-sm';
+                }
+            }
+        }
+
+        function simStep() {
+            if (!isSimRunning) return;
+
+            const increment = 0.3 * simSpeedMultiplier;
+
+            if (simAngle < 80) {
+                simAngle += increment * 1.2;
+            } else if (simAngle < 89.5) {
+                simAngle += increment * 0.4; // Slow down around 80~89 degrees to observe tan(80) clearly
+            } else if (simAngle < 90) {
+                simAngle += increment * 0.15;
+            }
+
+            if (simAngle >= 90) {
+                simAngle = 90;
+                isSimRunning = false;
+                if (btnSimPlay) {
+                    btnSimPlay.innerHTML = '<i class="fa-solid fa-rotate-right"></i><span>다시 보기</span>';
+                    btnSimPlay.className = 'px-4 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold rounded-xl text-xs md:text-sm transition flex items-center space-x-1.5 shadow';
+                }
+            }
+
+            drawSimCanvas();
+
+            if (isSimRunning) {
+                simAnimationId = requestAnimationFrame(simStep);
+            }
+        }
+
+        function startSim() {
+            if (simAngle >= 90) simAngle = 0;
+            isSimRunning = true;
+            if (btnSimPlay) {
+                btnSimPlay.innerHTML = '<i class="fa-solid fa-pause"></i><span>일시 정지</span>';
+                btnSimPlay.className = 'px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white font-bold rounded-xl text-xs md:text-sm transition flex items-center space-x-1.5 shadow';
+            }
+            if (simAnimationId) cancelAnimationFrame(simAnimationId);
+            simAnimationId = requestAnimationFrame(simStep);
+        }
+
+        function pauseSim() {
+            isSimRunning = false;
+            if (simAnimationId) cancelAnimationFrame(simAnimationId);
+            if (btnSimPlay) {
+                btnSimPlay.innerHTML = '<i class="fa-solid fa-play"></i><span>시뮬레이션 시작</span>';
+                btnSimPlay.className = 'px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-bold rounded-xl text-xs md:text-sm transition flex items-center space-x-1.5 shadow';
+            }
+        }
+
+        function resetSim() {
+            pauseSim();
+            simAngle = 0;
+            drawSimCanvas();
+        }
+
+        function openModal() {
+            if (simModal) simModal.classList.remove('hidden');
+            setTimeout(() => {
+                simCanvasSize = setupSimCanvas();
+                resetSim();
+            }, 50);
+        }
+
+        function closeModal() {
+            pauseSim();
+            if (simModal) simModal.classList.add('hidden');
         }
 
         function stopAnimation() {
@@ -723,33 +1050,60 @@
         function animateTo(targetDegree) {
             stopAnimation();
             animInterval = setInterval(() => {
-                if (currentAngle < targetDegree) {
-                    setAngle(currentAngle + 1);
-                } else if (currentAngle > targetDegree) {
-                    setAngle(currentAngle - 1);
-                } else {
-                    stopAnimation();
-                }
+                if (currentAngle < targetDegree) setAngle(currentAngle + 1);
+                else if (currentAngle > targetDegree) setAngle(currentAngle - 1);
+                else stopAnimation();
             }, 30);
         }
 
-        // Event Listeners for Controls
-        slider.addEventListener('input', (e) => {
-            stopAnimation();
-            setAngle(parseInt(e.target.value));
+        if (openSimBtn) openSimBtn.addEventListener('click', openModal);
+        if (btnOpenSimInSummary) btnOpenSimInSummary.addEventListener('click', openModal);
+        if (closeSimBtn) closeSimBtn.addEventListener('click', closeModal);
+
+        if (simModal) {
+            simModal.addEventListener('click', (e) => {
+                if (e.target === simModal) closeModal();
+            });
+        }
+
+        if (btnSimPlay) {
+            btnSimPlay.addEventListener('click', () => {
+                if (isSimRunning) pauseSim();
+                else startSim();
+            });
+        }
+
+        if (btnSimReset) btnSimReset.addEventListener('click', resetSim);
+
+        document.querySelectorAll('.sim-speed-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                simSpeedMultiplier = parseFloat(e.target.getAttribute('data-speed'));
+                document.querySelectorAll('.sim-speed-btn').forEach(b => b.classList.replace('bg-indigo-600', 'bg-slate-700'));
+                e.target.classList.replace('bg-slate-700', 'bg-indigo-600');
+            });
         });
 
-        btnPlus.addEventListener('click', () => {
-            stopAnimation();
-            setAngle(currentAngle + 1);
-        });
+        if (slider) {
+            slider.addEventListener('input', (e) => {
+                stopAnimation();
+                setAngle(parseInt(e.target.value));
+            });
+        }
 
-        btnMinus.addEventListener('click', () => {
-            stopAnimation();
-            setAngle(currentAngle - 1);
-        });
+        if (btnPlus) {
+            btnPlus.addEventListener('click', () => {
+                stopAnimation();
+                setAngle(currentAngle + 1);
+            });
+        }
 
-        // Preset Angle Buttons
+        if (btnMinus) {
+            btnMinus.addEventListener('click', () => {
+                stopAnimation();
+                setAngle(currentAngle - 1);
+            });
+        }
+
         document.querySelectorAll('.preset-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 stopAnimation();
@@ -758,18 +1112,16 @@
             });
         });
 
-        // Auto Animation Buttons
-        btnAnimateTo0.addEventListener('click', () => animateTo(0));
-        btnAnimateTo90.addEventListener('click', () => animateTo(90));
+        if (btnAnimateTo0) btnAnimateTo0.addEventListener('click', () => animateTo(0));
+        if (btnAnimateTo90) btnAnimateTo90.addEventListener('click', () => animateTo(90));
 
-        // Checkbox Toggles
-        toggleGrid.addEventListener('change', draw);
-        toggleTrace.addEventListener('change', draw);
-        toggleTangent.addEventListener('change', draw);
+        if (toggleGrid) toggleGrid.addEventListener('change', draw);
+        if (toggleTrace) toggleTrace.addEventListener('change', draw);
+        if (toggleTangent) toggleTangent.addEventListener('change', draw);
 
-        // Keyboard Navigation (Arrow Keys)
         window.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
+            if (e.key === 'Escape') closeModal();
+            else if (e.key === 'ArrowRight' || e.key === 'ArrowUp') {
                 stopAnimation();
                 setAngle(currentAngle + 1);
             } else if (e.key === 'ArrowLeft' || e.key === 'ArrowDown') {
@@ -778,12 +1130,18 @@
             }
         });
 
-        // Initial setup on window load
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            if (simModal && !simModal.classList.contains('hidden')) {
+                simCanvasSize = setupSimCanvas();
+                drawSimCanvas();
+            }
+        });
+
         window.onload = function () {
             resizeCanvas();
             setAngle(0);
             
-            // Re-render MathJax formula typesetting if library loaded
             if (window.MathJax && MathJax.typesetPromise) {
                 MathJax.typesetPromise();
             }
